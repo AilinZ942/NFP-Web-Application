@@ -70,7 +70,7 @@
                 <label for="country" class="form-label">Country</label>
                 <input id="country" type="text" class="form-control" v-model="formData.country" />
               </div>
-              <div class="col-md-6 col-sm-6">
+              <div class="col-md-6 col-sm-6 col-xs-6">
                 <label for="city" class="form-label">City</label>
                 <input id="city" type="text" class="form-control" v-model="formData.city" />
               </div>
@@ -141,6 +141,41 @@
               </button>
             </div>
           </form>
+          <h2 class="h5 mt-5">Registered Users</h2>
+          <div v-if="submittedCards.length" class="table-responsive">
+            <table class="table table-sm table-hover align-middle">
+              <thead class="table-light">
+                <tr>
+                  <th>Index</th>
+                  <th>Username</th>
+                  <th>Email</th>
+
+                  <th>Country</th>
+                  <th>City</th>
+                  <th>Age</th>
+                  <th>Topic</th>
+                </tr>
+              </thead>
+
+              <tbody>
+                <tr v-for="(u, i) in submittedCards" :key="u.id">
+                  <td>{{ i + 1 }}</td>
+                  <td>{{ u.username }}</td>
+                  <td>{{ u.email }}</td>
+
+                  <td>{{ u.country }}</td>
+                  <td>{{ u.city }}</td>
+                  <td>{{ u.age }}</td>
+                  <td>{{ u.interestTopic }}</td>
+                  <td>
+                    <button class="btn btn-sm btn-outline-danger" @click="removeUser(u.id)">
+                      Delete
+                    </button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
     </div>
@@ -148,7 +183,7 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, watch, onMounted, onUnmounted } from 'vue'
 
 const formData = ref({
   email: '',
@@ -179,7 +214,16 @@ const submitForm = () => {
     !errors.value.age &&
     !errors.value.readStatement
   ) {
-    submittedCards.value.push({ ...formData.value })
+    submittedCards.value.unshift({
+      id: Date.now(),
+      email: formData.value.email,
+      username: formData.value.username,
+      country: formData.value.country,
+      city: formData.value.city,
+      age: formData.value.age,
+      interestTopic: formData.value.interestTopic,
+      createdAt: new Date().toISOString(),
+    })
     clearForm()
   }
 }
@@ -272,6 +316,35 @@ const validateStatement = (blur) => {
   } else {
     errors.value.readStatement = null
   }
+}
+
+const STORAGE_KEY = 'users'
+onMounted(() => {
+  const saved = localStorage.getItem(STORAGE_KEY)
+  if (saved) {
+    try {
+      submittedCards.value = JSON.parse(saved)
+    } catch {}
+  }
+})
+watch(
+  submittedCards,
+  (val) => {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(val))
+  },
+  { deep: true },
+)
+
+const handleStorage = (e) => {
+  if (e.key === STORAGE_KEY) {
+    submittedCards.value = e.newValue ? JSON.parse(e.newValue) : []
+  }
+}
+onMounted(() => window.addEventListener('storage', handleStorage))
+onUnmounted(() => window.removeEventListener('storage', handleStorage))
+
+const removeUser = (id) => {
+  submittedCards.value = submittedCards.value.filter((u) => u.id !== id)
 }
 </script>
 
