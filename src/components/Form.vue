@@ -56,7 +56,6 @@
                   type="password"
                   class="form-control"
                   @blur="() => validateConfirm(true)"
-                  @input="() => validateConfirm(false)"
                   v-model="formData.confirmPassword"
                 />
 
@@ -149,7 +148,6 @@
                   <th>Index</th>
                   <th>Username</th>
                   <th>Email</th>
-
                   <th>Country</th>
                   <th>City</th>
                   <th>Age</th>
@@ -162,16 +160,10 @@
                   <td>{{ i + 1 }}</td>
                   <td>{{ u.username }}</td>
                   <td>{{ u.email }}</td>
-
                   <td>{{ u.country }}</td>
                   <td>{{ u.city }}</td>
                   <td>{{ u.age }}</td>
                   <td>{{ u.interestTopic }}</td>
-                  <td>
-                    <button class="btn btn-sm btn-outline-danger" @click="removeUser(u.id)">
-                      Delete
-                    </button>
-                  </td>
                 </tr>
               </tbody>
             </table>
@@ -222,7 +214,6 @@ const submitForm = () => {
       city: formData.value.city,
       age: formData.value.age,
       interestTopic: formData.value.interestTopic,
-      createdAt: new Date().toISOString(),
     })
     clearForm()
   }
@@ -342,10 +333,6 @@ const handleStorage = (e) => {
 }
 onMounted(() => window.addEventListener('storage', handleStorage))
 onUnmounted(() => window.removeEventListener('storage', handleStorage))
-
-const removeUser = (id) => {
-  submittedCards.value = submittedCards.value.filter((u) => u.id !== id)
-}
 </script>
 
 <style scoped>
