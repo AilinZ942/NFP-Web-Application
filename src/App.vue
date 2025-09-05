@@ -1,9 +1,9 @@
 <script setup>
-import Form from './components/Form.vue'
+import RegisterView from './components/views/AccountView/RegisterView.vue'
 </script>
 
 <template>
-  <Form />
+  <RegisterView />
 </template>
 
 <style scoped>

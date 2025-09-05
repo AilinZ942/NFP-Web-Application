@@ -140,34 +140,6 @@
               </button>
             </div>
           </form>
-          <h2 class="h5 mt-5">Registered Users</h2>
-          <div v-if="submittedCards.length" class="table-responsive">
-            <table class="table table-sm table-hover align-middle">
-              <thead class="table-light">
-                <tr>
-                  <th>Index</th>
-                  <th>Username</th>
-                  <th>Email</th>
-                  <th>Country</th>
-                  <th>City</th>
-                  <th>Age</th>
-                  <th>Topic</th>
-                </tr>
-              </thead>
-
-              <tbody>
-                <tr v-for="(u, i) in submittedCards" :key="u.id">
-                  <td>{{ i + 1 }}</td>
-                  <td>{{ u.username }}</td>
-                  <td>{{ u.email }}</td>
-                  <td>{{ u.country }}</td>
-                  <td>{{ u.city }}</td>
-                  <td>{{ u.age }}</td>
-                  <td>{{ u.interestTopic }}</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
         </div>
       </div>
     </div>
@@ -176,6 +148,9 @@
 
 <script setup>
 import { ref, watch, onMounted, onUnmounted } from 'vue'
+import { useRouter } from 'vue-router'
+
+const router = useRouter()
 
 const formData = ref({
   email: '',
@@ -206,16 +181,19 @@ const submitForm = () => {
     !errors.value.age &&
     !errors.value.readStatement
   ) {
-    submittedCards.value.unshift({
+    const newUser = {
       id: Date.now(),
       email: formData.value.email,
       username: formData.value.username,
+      password: formData.value.password,
       country: formData.value.country,
       city: formData.value.city,
       age: formData.value.age,
       interestTopic: formData.value.interestTopic,
-    })
+    }
+    submittedCards.value.unshift(newUser)
     clearForm()
+    router.push('/account/login')
   }
 }
 
