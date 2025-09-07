@@ -1,9 +1,10 @@
 <script setup>
-import RegisterView from './components/views/AccountView/RegisterView.vue'
+import BHeader from './components/BHeader.vue'
 </script>
 
 <template>
-  <RegisterView />
+  <BHeader />
+  <router-view />
 </template>
 
 <style scoped>

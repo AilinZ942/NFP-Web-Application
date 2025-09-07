@@ -78,7 +78,7 @@ import { useRouter } from 'vue-router'
 const router = useRouter()
 const user = ref(null)
 const allUsers = ref([])
-const ADMIN_EMAIL = 'Admainer1@admainer.com'
+const ADMIN_EMAIL = 'Admin1@admin.com'
 
 onMounted(() => {
   const rawUser = localStorage.getItem('currentUser')
