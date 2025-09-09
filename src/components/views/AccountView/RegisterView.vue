@@ -147,8 +147,11 @@
 </template>
 
 <script setup>
-import { ref, watch, onMounted, onUnmounted } from 'vue'
+import { ref } from 'vue'
 import { useRouter } from 'vue-router'
+import { auth, db } from '@/firebase/init.js'
+import { createUserWithEmailAndPassword, updateProfile, signOut } from 'firebase/auth'
+import { doc, setDoc } from 'firebase/firestore'
 
 const router = useRouter()
 
@@ -163,39 +166,6 @@ const formData = ref({
   interestTopic: '',
   readStatement: false,
 })
-
-const submittedCards = ref([])
-
-const submitForm = () => {
-  validateName(true)
-  validateEmail(true)
-  validatePassword(true)
-  validateConfirm(true)
-  validateAge(true)
-  validateStatement(true)
-  if (
-    !errors.value.username &&
-    !errors.value.email &&
-    !errors.value.password &&
-    !errors.value.confirmPassword &&
-    !errors.value.age &&
-    !errors.value.readStatement
-  ) {
-    const newUser = {
-      id: Date.now(),
-      email: formData.value.email,
-      username: formData.value.username,
-      password: formData.value.password,
-      country: formData.value.country,
-      city: formData.value.city,
-      age: formData.value.age,
-      interestTopic: formData.value.interestTopic,
-    }
-    submittedCards.value.unshift(newUser)
-    clearForm()
-    router.push('/account/login')
-  }
-}
 
 const clearForm = () => {
   formData.value = {
@@ -287,30 +257,43 @@ const validateStatement = (blur) => {
   }
 }
 
-const STORAGE_KEY = 'users'
-onMounted(() => {
-  const saved = localStorage.getItem(STORAGE_KEY)
-  if (saved) {
-    try {
-      submittedCards.value = JSON.parse(saved)
-    } catch {}
-  }
-})
-watch(
-  submittedCards,
-  (val) => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(val))
-  },
-  { deep: true },
-)
+const submitForm = () => {
+  validateName(true)
+  validateEmail(true)
+  validatePassword(true)
+  validateConfirm(true)
+  validateAge(true)
+  validateStatement(true)
 
-const handleStorage = (e) => {
-  if (e.key === STORAGE_KEY) {
-    submittedCards.value = e.newValue ? JSON.parse(e.newValue) : []
-  }
+  if (
+    errors.value.username ||
+    errors.value.email ||
+    errors.value.password ||
+    errors.value.confirmPassword ||
+    errors.value.age ||
+    errors.value.readStatement
+  )
+    return
+
+  const { email, password, username, country, city, age, interestTopic } = formData.value
+
+  createUserWithEmailAndPassword(auth, email, password)
+    .then((cred) =>
+      updateProfile(cred.user, { displayName: username }).then(() =>
+        setDoc(doc(db, 'users', cred.user.uid), {
+          email,
+          username,
+          country,
+          city,
+          age,
+          interestTopic,
+        }),
+      ),
+    )
+    .then(() => signOut(auth))
+    .then(() => router.push('/account/login'))
+    .catch(() => alert('Registration failed.'))
 }
-onMounted(() => window.addEventListener('storage', handleStorage))
-onUnmounted(() => window.removeEventListener('storage', handleStorage))
 </script>
 
 <style scoped>

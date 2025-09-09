@@ -16,7 +16,7 @@
             </tr>
           </thead>
           <tbody>
-            <tr v-for="(u, i) in allUsers" :key="u.id">
+            <tr v-for="(u, i) in allUsers" :key="u.uid">
               <td>{{ i + 1 }}</td>
               <td>{{ u.username }}</td>
               <td>{{ u.email }}</td>
@@ -72,32 +72,52 @@
 </template>
 
 <script setup>
-import { ref, onMounted, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
+import { auth, db } from '@/firebase/init.js'
+import { onAuthStateChanged, signOut } from 'firebase/auth'
+import { doc, getDoc, collection, getDocs } from 'firebase/firestore'
 
 const router = useRouter()
 const user = ref(null)
 const allUsers = ref([])
-const ADMIN_EMAIL = 'Admin1@admin.com'
+const currentEmail = ref('')
+const ADMIN_EMAIL = 'admin1@admin.com'
+
+const loadOwnProfile = (u) => {
+  getDoc(doc(db, 'users', u.uid))
+    .then((snap) => {
+      user.value = snap.exists()
+        ? snap.data()
+        : { uid: u.uid, email: u.email, username: u.displayName || '' }
+    })
+    .catch(() => {
+      user.value = { uid: u.uid, email: u.email, username: u.displayName || '' }
+    })
+}
+
+const loadAllUsers = () => {
+  getDocs(collection(db, 'users')).then((snap) => {
+    allUsers.value = snap.docs.map((d) => ({ ...d.data(), uid: d.id }))
+  })
+}
 
 onMounted(() => {
-  const rawUser = localStorage.getItem('currentUser')
-  user.value = rawUser ? JSON.parse(rawUser) : null
-  if (!user.value) {
-    router.replace('/account/login')
-    return
-  }
-  const rawUsers = localStorage.getItem('users')
-  allUsers.value = rawUsers ? JSON.parse(rawUsers) : []
+  onAuthStateChanged(auth, (u) => {
+    currentEmail.value = u.email
+
+    if (currentEmail.value === ADMIN_EMAIL) {
+      user.value = { email: u.email }
+      loadAllUsers()
+    } else {
+      loadOwnProfile(u)
+    }
+  })
 })
 
-const isAdmin = computed(() => {
-  const email = user.value.email
-  return email === ADMIN_EMAIL
-})
+const isAdmin = computed(() => currentEmail.value === ADMIN_EMAIL)
 
 const logout = () => {
-  localStorage.removeItem('currentUser')
-  router.replace('/account/login')
+  signOut(auth).then(() => router.replace('/account/login'))
 }
 </script>

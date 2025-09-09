@@ -5,6 +5,7 @@ import CommunityView from '../components/views/CommunityView.vue'
 import LoginView from '../components/views/AccountView/LoginView.vue'
 import RegisterView from '../components/views/AccountView/RegisterView.vue'
 import ProfileView from '../components/views/AccountView/ProfileView.vue'
+import { auth } from '../firebase/init.js'
 
 const routes = [
   { path: '/', redirect: '/healthResource' },
@@ -12,8 +13,7 @@ const routes = [
   { path: '/community', name: 'community', component: CommunityView, meta: { requiresAuth: true } },
   {
     path: '/account',
-    redirect: () =>
-      localStorage.getItem('currentUser') ? { name: 'account.profile' } : { name: 'account.login' },
+    redirect: () => (auth.currentUser ? { name: 'account.profile' } : { name: 'account.login' }),
   },
   {
     path: '/account/login',
@@ -42,14 +42,11 @@ const router = createRouter({
 })
 
 router.beforeEach((to) => {
-  const isAuthed = !!localStorage.getItem('currentUser')
-  if (to.meta?.guestOnly && isAuthed) {
-    return { name: 'account.profile' }
-  }
+  const isAuthed = !!auth.currentUser
+  if (to.meta?.guestOnly && isAuthed) return { name: 'account.profile' }
   if (to.meta?.requiresAuth && !isAuthed) {
     return { name: 'account.login', query: { redirect: to.fullPath } }
   }
-
   return true
 })
 

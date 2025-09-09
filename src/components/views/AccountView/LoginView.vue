@@ -1,9 +1,11 @@
 <script setup>
 import { ref } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRouter, useRoute } from 'vue-router'
+import { auth } from '@/firebase/init.js'
+import { signInWithEmailAndPassword } from 'firebase/auth'
 
-const success = ref('')
 const router = useRouter()
+const route = useRoute()
 
 const formData = ref({
   email: '',
@@ -35,24 +37,22 @@ const onSubmit = () => {
   validateEmail(true)
   validatePassword(true)
   if (errors.value.email || errors.value.password) return
+
   errors.value.auth = null
-  const users = JSON.parse(localStorage.getItem('users'))
-  let matchedUser = null
-  for (const u of users) {
-    if (u.email === formData.value.email) {
-      if (u.password === formData.value.password) {
-        matchedUser = u
+  signInWithEmailAndPassword(auth, formData.value.email, formData.value.password)
+    .then(() => {
+      router.push(route.query.redirect ? String(route.query.redirect) : '/account/profile')
+    })
+    .catch((e) => {
+      const code = e?.code || ''
+      if (
+        code === 'auth/invalid-credential' ||
+        code === 'auth/wrong-password' ||
+        code === 'auth/user-not-found'
+      ) {
+        errors.value.auth = 'Invalid email or password.'
       }
-      break
-    }
-  }
-  if (!matchedUser) {
-    errors.value.auth = 'Invalid email or password.'
-    return
-  }
-  localStorage.setItem('currentUser', JSON.stringify(matchedUser))
-  localStorage.setItem('isAuthed', 'true')
-  router.push('/account/profile')
+    })
 }
 </script>
 
@@ -97,7 +97,6 @@ const onSubmit = () => {
           <div class="text-center">
             <button type="submit" class="btn btn-primary me-2">Log in</button>
           </div>
-          <div v-if="success" class="alert alert-success mt-3">{{ success }}</div>
           <div class="text-center mt-3">
             <router-link class="link-primary me-4" to="/account/register">Register</router-link>
             <router-link to="/healthResource" class="link-secondary">Continue as Guest</router-link>
