@@ -1,11 +1,10 @@
 <script setup>
 import { ref } from 'vue'
-import { useRouter, useRoute } from 'vue-router'
+import { useRouter } from 'vue-router'
 import { auth } from '@/firebase/init.js'
 import { signInWithEmailAndPassword } from 'firebase/auth'
 
 const router = useRouter()
-const route = useRoute()
 
 const formData = ref({
   email: '',
@@ -41,7 +40,7 @@ const onSubmit = () => {
   errors.value.auth = null
   signInWithEmailAndPassword(auth, formData.value.email, formData.value.password)
     .then(() => {
-      router.push(route.query.redirect ? String(route.query.redirect) : '/account/profile')
+      router.replace('/account/profile')
     })
     .catch((e) => {
       const code = e?.code || ''
