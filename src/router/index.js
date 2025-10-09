@@ -1,0 +1,60 @@
+import { createRouter, createWebHistory } from 'vue-router'
+
+import HealthResourceView from '../components/views/HealthResourceView.vue'
+import CommunityView from '../components/views/CommunityView.vue'
+import LoginView from '../components/views/AccountView/LoginView.vue'
+import RegisterView from '../components/views/AccountView/RegisterView.vue'
+import ProfileView from '../components/views/AccountView/ProfileView.vue'
+import SendEmailView from '@/components/views/SendEmailView.vue'
+import { auth } from '../firebase/init.js'
+
+const routes = [
+  { path: '/', redirect: '/healthResource' },
+  { path: '/healthResource', name: 'healthResource', component: HealthResourceView },
+  { path: '/community', name: 'community', component: CommunityView, meta: { requiresAuth: true } },
+  {
+    path: '/account',
+    redirect: () => (auth.currentUser ? { name: 'account.profile' } : { name: 'account.login' }),
+  },
+  {
+    path: '/account/login',
+    name: 'account.login',
+    component: LoginView,
+    meta: { guestOnly: true },
+  },
+  {
+    path: '/account/register',
+    name: 'account.register',
+    component: RegisterView,
+    meta: { guestOnly: true },
+  },
+  {
+    path: '/account/profile',
+    name: 'account.profile',
+    component: ProfileView,
+    meta: { requiresAuth: true },
+  },
+  {
+    path: '/send-email',
+    name: 'sendEmail',
+    component: SendEmailView,
+    meta: { requiresAuth: true },
+  },
+]
+
+const router = createRouter({
+  history: createWebHistory(),
+  routes,
+  scrollBehavior: () => ({ top: 0 }),
+})
+
+router.beforeEach((to) => {
+  const isAuthed = !!auth.currentUser
+  if (to.meta?.guestOnly && isAuthed) return { name: 'account.profile' }
+  if (to.meta?.requiresAuth && !isAuthed) {
+    return { name: 'account.login', query: { redirect: to.fullPath } }
+  }
+  return true
+})
+
+export default router
