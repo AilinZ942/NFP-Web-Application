@@ -13,6 +13,11 @@
           >
         </li>
         <li class="nav-item">
+          <router-link to="/support" class="nav-link" active-class="active"
+            >Support Us</router-link
+          >
+        </li>
+        <li class="nav-item">
           <router-link to="/account" class="nav-link" :class="{ active: isAccountRoute }">
             Account
           </router-link>

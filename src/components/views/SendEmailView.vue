@@ -3,7 +3,7 @@ import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import axios from 'axios'
 const router = useRouter()
-const FN_URL = 'https://sendmail-chzb3x46ga-ts.a.run.app'
+const FN_URL = 'https://australia-southeast1-fit5032-assignment-23fa4.cloudfunctions.net/sendMail'
 
 const to = ref('')
 const subject = ref('')

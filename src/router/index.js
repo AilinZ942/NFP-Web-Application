@@ -6,7 +6,11 @@ import LoginView from '../components/views/AccountView/LoginView.vue'
 import RegisterView from '../components/views/AccountView/RegisterView.vue'
 import ProfileView from '../components/views/AccountView/ProfileView.vue'
 import SendEmailView from '@/components/views/SendEmailView.vue'
+import SupportView from '@/components/views/SupportView.vue'
+import DonorView from '@/components/views/DonorView.vue'
+import ActivityView from '@/components/views/ActivityView.vue'
 import { auth } from '../firebase/init.js'
+
 
 const routes = [
   { path: '/', redirect: '/healthResource' },
@@ -16,6 +20,7 @@ const routes = [
     path: '/account',
     redirect: () => (auth.currentUser ? { name: 'account.profile' } : { name: 'account.login' }),
   },
+  { path: '/support', name: 'support', component: SupportView },
   {
     path: '/account/login',
     name: 'account.login',
@@ -40,6 +45,8 @@ const routes = [
     component: SendEmailView,
     meta: { requiresAuth: true },
   },
+  { path: '/support/activities', name: 'support.activities', component: ActivityView },
+  { path: '/support/donor', name: 'support.donor', component: DonorView },
 ]
 
 const router = createRouter({
