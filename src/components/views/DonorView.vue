@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted, watch } from 'vue'
 import { useRoute } from 'vue-router'
-// import DataTable from '@/components/DataTable.vue'
+import DataTable from '@/components/DataTable.vue'
 
 const route = useRoute()
 const rows = ref<any[]>([])
@@ -15,7 +15,7 @@ function fmtCurrency(n: number) {
 async function load() {
   loading.value = true
   try {
-    const data = await fetch('/data/donations_list.json').then(r => r.json())
+    const data = await fetch('/Data/Donors.json').then(r => r.json())
     rows.value = data.sort((a:any,b:any) => new Date(b.date).getTime() - new Date(a.date).getTime())
   } finally {
     loading.value = false
@@ -25,22 +25,22 @@ onMounted(load)
 watch(() => route.fullPath, load)
 
 const columns = [
-  { key: 'donor',  label: 'Donor',   type: 'string' },
-  { key: 'date',   label: 'Date/Time', type: 'date',  format: (v:string)=> new Date(v).toLocaleString() },
-  { key: 'amount', label: 'Amount',  type: 'number', format: (v:number)=> fmtCurrency(v) },
-  { key: 'method', label: 'Method',  type: 'string' },
-  { key: 'note',   label: 'Note',    type: 'string' }
+  { key: 'Donor',  label: 'Donor',   type: 'string' },
+  { key: 'Date',   label: 'Date/Time', type: 'date'},
+  { key: 'Email',  label: 'Email',   type: 'string' },
+  { key: 'Amount', label: 'Amount',  type: 'string' },
+  { key: 'Note',   label: 'Note',    type: 'string' }
 ]
 </script>
 
 <template>
-  <main class="max-w-6xl mx-auto p-6">
-    <RouterLink :to="{name:'support.hub'}" class="underline">Back</RouterLink>
+  <main class="max-w-6xl mx-auto p-6 text-center">
     <h1 class="text-2xl font-semibold my-4">Donation List</h1>
-
-    <div class="text-gray-600 mb-4">
-      Click headers to sort; use global/column filters to find entries.
-    </div>
-
+    <DataTable
+      :rows="rows"
+      :columns="columns"
+      :pageSize="10"
+    />
+    <RouterLink :to="{name:'support'}" class="underline">Back</RouterLink>
   </main>
 </template>

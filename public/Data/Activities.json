@@ -1,0 +1,20 @@
+[
+  { "Title": "Breast Health Awareness Evening", "Date": "2025-03-14", "Location": "Melbourne, VIC", "Attendees": 120, "Tags": ["breast-health","screening","awareness"] },
+  { "Title": "Cervical Cancer Screening Info Session", "Date": "2025-02-24", "Location": "Sydney, NSW", "Attendees": 95, "Tags": ["cervical-cancer","hpv","screening"] },
+  { "Title": "HPV Vaccination Q&A for Women", "Date": "2025-04-09", "Location": "Brisbane, QLD", "Attendees": 60, "Tags": ["hpv","vaccination","education"] },
+  { "Title": "PCOS Management Workshop", "Date": "2025-05-18", "Location": "Perth, WA", "Attendees": 80, "Tags": ["pcos","nutrition","workshop"] },
+  { "Title": "Endometriosis Pain & Care Seminar", "Date": "2025-06-07", "Location": "Adelaide, SA", "Attendees": 110, "Tags": ["endometriosis","pain-management","education"] },
+  { "Title": "Menopause: Symptoms, Sleep and Support", "Date": "2025-07-12", "Location": "Canberra, ACT", "Attendees": 130, "Tags": ["menopause","sleep","support-group"] },
+  { "Title": "Pelvic Floor Strength & Physio Class", "Date": "2025-02-08", "Location": "Hobart, TAS", "Attendees": 55, "Tags": ["pelvic-floor","physiotherapy","fitness"] },
+  { "Title": "Heart Health in Women: Know the Signs", "Date": "2025-08-03", "Location": "Darwin, NT", "Attendees": 90, "Tags": ["heart-health","prevention","awareness"] },
+  { "Title": "Osteoporosis Risk & Bone Health Talk", "Date": "2025-03-29", "Location": "Gold Coast, QLD", "Attendees": 75, "Tags": ["osteoporosis","bone-health","education"] },
+  { "Title": "Fertility Awareness & Cycle Tracking 101", "Date": "2025-04-21", "Location": "Newcastle, NSW", "Attendees": 88, "Tags": ["fertility","cycle-tracking","education"] },
+  { "Title": "Prenatal Nutrition for Healthy Pregnancy", "Date": "2025-05-05", "Location": "Wollongong, NSW", "Attendees": 70, "Tags": ["prenatal","nutrition","education"] },
+  { "Title": "Gestational Diabetes: What to Expect", "Date": "2025-06-18", "Location": "Geelong, VIC", "Attendees": 68, "Tags": ["gestational-diabetes","pregnancy","education"] },
+  { "Title": "Postpartum Recovery & Mental Wellbeing", "Date": "2025-07-26", "Location": "Sunshine Coast, QLD", "Attendees": 92, "Tags": ["postpartum","mental-health","support-group"] },
+  { "Title": "Safe Relationships & Support Services", "Date": "2025-08-15", "Location": "Ballarat, VIC", "Attendees": 105, "Tags": ["domestic-violence","safety","resources"] },
+  { "Title": "Sexual Health Checkups for Women", "Date": "2025-09-06", "Location": "Bendigo, VIC", "Attendees": 85, "Tags": ["sexual-health","screening","education"] },
+  { "Title": "Women in Sport: Inclusive Fitness Day", "Date": "2025-03-07", "Location": "Townsville, QLD", "Attendees": 150, "Tags": ["sport","community","fitness"] },
+  { "Title": "Stress & Anxiety Tools for Women", "Date": "2025-04-27", "Location": "Cairns, QLD", "Attendees": 98, "Tags": ["mental-health","stress","workshop"] },
+  { "Title": "Cancer Screening Pathways: What & When", "Date": "2025-05-30", "Location": "Launceston, TAS", "Attendees": 76, "Tags": ["screening","breast-health","cervical-cancer"] }
+]
