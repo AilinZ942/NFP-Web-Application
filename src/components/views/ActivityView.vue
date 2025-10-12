@@ -35,6 +35,8 @@ const columns = [
       :rows="rows"
       :columns="columns"
       :pageSize="10"
+      exportable
+      exportFilenameBase="activities" 
     />
     <RouterLink :to="{name:'support'}" class="underline">Back</RouterLink>
   </main>
