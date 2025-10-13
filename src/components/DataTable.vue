@@ -101,7 +101,7 @@ function downloadCSV() {
   const url = URL.createObjectURL(blob)
   const a = document.createElement('a')
   a.href = url
-  a.download = props.exportFilename || 'export.csv'
+  a.download = props.exportFilenameBase || 'export.csv'
   a.click()
   URL.revokeObjectURL(url)
 }

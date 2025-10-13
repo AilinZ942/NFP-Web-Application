@@ -26,7 +26,7 @@ watch(() => route.fullPath, load)
 
 const columns = [
   { key: 'Donor',  label: 'Donor',   type: 'string' },
-  { key: 'Date',   label: 'Date/Time', type: 'date'},
+  { key: 'Date',   label: 'Date', type: 'date'},
   { key: 'Email',  label: 'Email',   type: 'string' },
   { key: 'Amount', label: 'Amount',  type: 'string' },
   { key: 'Note',   label: 'Note',    type: 'string' }
