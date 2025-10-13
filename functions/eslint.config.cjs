@@ -1,4 +1,5 @@
-module.exports = {
+/* module.exports = {
+  root: true,
   env: {
     es6: true,
     node: true,
@@ -17,7 +18,7 @@ module.exports = {
   },
   overrides: [
     {
-      files: ["**/*.spec.*"],
+      files: ["** /*.spec.*"],
       env: {
         mocha: true,
       },
@@ -26,3 +27,18 @@ module.exports = {
   ],
   globals: {},
 };
+**/
+const js = require('@eslint/js')
+
+
+module.exports = [
+  js.configs.recommended,
+  {
+    files: ['**/*.js'],
+    languageOptions: { ecmaVersion: 2022, sourceType: 'commonjs' },
+    rules: {
+      'prefer-arrow-callback': 'error',
+      'quotes': ['error', 'double', { allowTemplateLiterals: true }],
+    },
+  },
+]
