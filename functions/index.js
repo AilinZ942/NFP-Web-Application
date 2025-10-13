@@ -80,7 +80,7 @@ exports.sendMail = onRequest({ cors: true, secrets: [SENDGRID_API_KEY, MAIL_SEND
       attachments = [{ content:fileBase64, filename:fileName||"attachment", type:mimeType||"application/octet-stream", disposition:"attachment" }]
     }
 
-    await sgMail.send({ to: toList, from: { email: sender, name: "Your App" }, subject, text, html, attachments })
+    await sgMail.send({ to: toList, from: { email: sender, name: "Women Healthy Resource" }, subject, text, html, attachments })
     res.json({ ok:true })
   } catch (e) {
     console.error("SENDMAIL_ERROR:", e?.response?.body || e)
