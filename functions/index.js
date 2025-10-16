@@ -89,7 +89,8 @@ exports.sendMail = onRequest({ cors: true, secrets: [SENDGRID_API_KEY, MAIL_SEND
 })
 
 
-
+/* eslint-env node */
+/* global fetch, URL */
 const MAPBOX_TOKEN = defineSecret("MAPBOX_TOKEN");
 
 function parseLngLat(val) {
@@ -107,30 +108,61 @@ function setCors(res, origin = "*") {
 }
 
 exports.mbPlaces = onRequest({ cors: true, secrets: [MAPBOX_TOKEN] }, async (req, res) => {
-  setCors(res, "*");
-  if (req.method === "OPTIONS") return res.status(204).send("");
-  if (req.method !== "GET") return res.status(405).send("Method Not Allowed");
 
   try {
     const token = MAPBOX_TOKEN.value();
-    if (!token) return res.status(500).json({ ok: false, error: "Missing MAPBOX_TOKEN" });
+    if (!token) return res.status(500).json({ error: "Missing MAPBOX_TOKEN" });
 
-    const q = (req.query.q || "hospital").toString().slice(0, 100);
-    const center = parseLngLat(req.query.center) || [144.9631, -37.8136]; 
-    const limit = Math.min(Math.max(Number(req.query.limit) || 20, 1), 50);
+    const qRaw = String(req.query.q || "hospital").toLowerCase();
+    const queryText = (qRaw === "police") ? "police station" : "hospital";
+    let [lng, lat] = String(req.query.center || "144.9631,-37.8136").split(",").map(Number);
+    if (!Number.isFinite(lng) || !Number.isFinite(lat)) { lng = 144.9631; lat = -37.8136; }
+    if (Math.abs(lng) > 180 || Math.abs(lat) > 90) { [lng, lat] = [lat, lng]; }
+    const limit = Math.min(Math.max(parseInt(req.query.limit || "20", 10), 1), 50);
 
-    const url = new URL(`https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(q)}.json`);
-    url.searchParams.set("proximity", `${center[0]},${center[1]}`);
-    url.searchParams.set("types", "poi");
-    url.searchParams.set("limit", String(limit));
-    url.searchParams.set("access_token", token);
 
-    const r = await fetch(url);
-    const json = await r.json();
-    return res.json(json); 
+    const makeUrl = (withTypes) => {
+      const u = new URL(`https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(queryText)}.json`);
+      u.searchParams.set("access_token", token);
+      u.searchParams.set("proximity", `${lng},${lat}`);       
+      u.searchParams.set("limit", String(limit));
+      u.searchParams.set("language", "en");
+      if (withTypes) u.searchParams.set("types", "poi");
+
+      const bboxStr = String(req.query.bbox || "").trim();
+      const box = bboxStr.split(",").map(Number);
+      if (box.length === 4 && box.every(Number.isFinite)) {
+        u.searchParams.set("bbox", box.join(","));
+      }
+      const country = String(req.query.country || "").trim().toLowerCase();
+      if (country) u.searchParams.set("country", country);
+      
+      if (queryText === "hospital") u.searchParams.set("categories", "hospital");
+      if (queryText === "police station") u.searchParams.set("categories", "police");
+
+      return u;
+    };
+    let r = await fetch(makeUrl(true));
+    let text = await r.text();
+
+    if (r.ok) {
+      try {
+        const json = JSON.parse(text);
+        const count = Array.isArray(json.features) ? json.features.length : 0;
+        if (count === 0) {
+          const r2 = await fetch(makeUrl(false));
+          const text2 = await r2.text();
+          if (!r2.ok) return res.status(r2.status).send(text2);
+          return res.type("application/json").send(text2);
+        }
+      } catch {  }
+    }
+
+    if (!r.ok) return res.status(r.status).send(text);
+    return res.type("application/json").send(text);
   } catch (e) {
-    console.error("MB_PLACES_ERROR:", e);
-    return res.status(500).json({ ok: false, error: "Failed to fetch places" });
+    console.error("mbPlaces error", e);
+    return res.status(500).json({ error: "mbPlaces failed" });
   }
 });
 

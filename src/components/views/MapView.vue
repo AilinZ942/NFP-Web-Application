@@ -24,7 +24,7 @@
     </div>
 
     <div class="content">
-      <div ref="mapEl" id="map" aria-label="Map" />
+      <div ref="mapEl" id="map" aria-label="Map"></div>
       <aside class="panel" aria-label="Results list">
         <div v-for="(p, idx) in places" :key="p.id || idx" class="card" @click="focusPlace(p)" :aria-label="`Place ${p.text || p.place_name}`" tabindex="0">
           <div class="title">
@@ -44,12 +44,14 @@
 
 <script setup>
 import { onMounted, onBeforeUnmount, ref, reactive } from 'vue'
+import 'mapbox-gl/dist/mapbox-gl.css'
 import mapboxgl from 'mapbox-gl'
+mapboxgl.accessToken = 'pk.eyJ1IjoiYWlsaW56b3UxMjMiLCJhIjoiY21ncnFmb3AwMzByOTJub2t4eTY2bGFtNSJ9.fnbsh0vva6co6UTSRHcRjQ'
 
 
 const URLS = {
-  places: 'https://australia-southeast1-<project-id>.cloudfunctions.net/mbPlaces',
-  route:   'https://australia-southeast1-<project-id>.cloudfunctions.net/mbRoute'
+  places: 'https://mbplaces-chzb3x46ga-ts.a.run.app',
+  route: 'https://mbroute-chzb3x46ga-ts.a.run.app'
 }
 
 const props = defineProps({
@@ -84,20 +86,34 @@ onMounted(async () => {
   })
 
   map.addControl(new mapboxgl.NavigationControl(), 'top-left')
-  const geo = new mapboxgl.GeolocateControl({ trackUserLocation: true, positionOptions: { enableHighAccuracy: true }})
-  map.addControl(geo, 'top-left')
 
-  map.on('load', () => {
-    geo.trigger()
-
-    map.addSource('route-source', { type: 'geojson', data: { type: 'FeatureCollection', features: [] } })
-    map.addLayer({ id: 'route-line', type: 'line', source: 'route-source', paint: { 'line-width': 5, 'line-color': '#3b82f6' } })
-  })
+  const geo = new mapboxgl.GeolocateControl({
+  trackUserLocation: true,
+  positionOptions: { enableHighAccuracy: true },
+  });
+  map.addControl(geo, 'top-left');
 
   geo.on('geolocate', (e) => {
-    myLngLat.value = [e.coords.longitude, e.coords.latitude]
-    drawUser()
-  })
+  const coords = (e && e.coords) ? e.coords : null;
+  if (!coords || !Number.isFinite(coords.longitude) || !Number.isFinite(coords.latitude)) {
+    console.warn('Geolocate event without coords:', e);
+    status.value = 'Location unavailable, using map center';
+    return; 
+  }
+  myLngLat.value = [coords.longitude, coords.latitude];
+  drawUser();
+});
+
+geo.on('error', (err) => {
+  console.warn('Geolocate error', err);
+  status.value = 'Location denied, using map center';
+});
+
+  map.on('load', () => {
+  map.addSource('route-source', { type: 'geojson', data: { type: 'FeatureCollection', features: [] } });
+  map.addLayer({ id: 'route-line', type: 'line', source: 'route-source', paint: { 'line-width': 5, 'line-color': '#3b82f6' } });
+  geo.trigger(); 
+});
 })
 
 onBeforeUnmount(() => { if (map) map.remove() })
@@ -120,8 +136,16 @@ async function searchNearby () {
   loadingPlaces.value = true
   status.value = 'Searching'
   try {
-    const center = myLngLat.value || map.getCenter().toArray()
-    const data = await api(URLS.places, { q: category.value, center: `${center[0]},${center[1]}`, limit: 20 })
+    const ctr = map?.getCenter ? map.getCenter().toArray() : props.center
+    const q = category.value === 'police' ? 'police station' : 'hospital'
+    const b = map.getBounds();
+    const bbox = [b.getWest(), b.getSouth(), b.getEast(), b.getNorth()].join(',');
+    const data = await api(URLS.places, {
+      q,
+      center: map.getCenter().toArray().join(','),           
+      country: 'AU',     
+      limit: 20
+    });
 
     poiMarkers.forEach(m => m.remove()); poiMarkers = []
     places.splice(0, places.length)
@@ -197,3 +221,25 @@ function formatKm (meters) {
 
 function recalcRouteIfAny(){ if (!routeOnMap.value) return; clearRoute() }
 </script>
+
+<style scoped>
+.e2-wrapper { display:flex; flex-direction:column; height:100%; min-height:80vh; }
+.toolbar { border-bottom: 1px solid #eee; padding: 8px 12px; }
+.row { display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
+.status { margin-top:6px; font-size:12px; color:#555; }
+.content { display:flex; flex:1; min-height:0; }
+#map { flex:1; min-height:60vh; }
+.panel { width: 360px; max-width: 40vw; border-left: 1px solid #eee; padding: 10px; overflow:auto; }
+.hint { color:#666; font-size: 14px; padding: 8px; }
+.card { border: 1px solid #eee; border-radius: 10px; padding: 10px; margin: 8px 0; cursor: pointer; }
+.card:focus { outline: 2px solid #3b82f6; }
+.title { display:flex; align-items:center; gap:8px; }
+.badge { display:inline-block; min-width:20px; text-align:center; font-size:12px; background:#f3f4f6; border-radius: 999px; padding:2px 6px; }
+.sub { color:#666; font-size: 12px; margin-top: 2px; }
+.meta { color:#374151; font-size: 12px; margin-top: 6px; }
+.actions { display:flex; gap:8px; margin-top: 8px; }
+button { padding: 6px 10px; border-radius: 8px; border: 1px solid #d1d5db; background: #fff; cursor: pointer; }
+button:disabled { opacity: .6; cursor: not-allowed; }
+select { padding: 6px 10px; border-radius: 8px; border: 1px solid #d1d5db; background: #fff; }
+.sr-only { position:absolute; left:-10000px; top:auto; width:1px; height:1px; overflow:hidden; }
+</style>
