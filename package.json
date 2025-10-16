@@ -25,6 +25,7 @@
     "firebase-functions": "^6.5.0",
     "jspdf": "^3.0.3",
     "jspdf-autotable": "^5.0.2",
+    "mapbox-gl": "^3.15.0",
     "primevue": "^4.3.7",
     "vue": "^3.5.18",
     "vue-router": "^4.5.1"

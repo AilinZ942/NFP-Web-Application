@@ -89,3 +89,83 @@ exports.sendMail = onRequest({ cors: true, secrets: [SENDGRID_API_KEY, MAIL_SEND
 })
 
 
+
+const MAPBOX_TOKEN = defineSecret("MAPBOX_TOKEN");
+
+function parseLngLat(val) {
+  const [lng, lat] = String(val || "").split(",").map(s => Number(s.trim()));
+  if (!Number.isFinite(lng) || !Number.isFinite(lat)) return null;
+  if (lng < -180 || lng > 180 || lat < -90 || lat > 90) return null;
+  return [lng, lat];
+}
+
+function setCors(res, origin = "*") {
+  res.set("Access-Control-Allow-Origin", origin);
+  res.set("Access-Control-Allow-Headers", "content-type,authorization");
+  res.set("Access-Control-Allow-Methods", "GET,OPTIONS");
+  res.set("Vary", "Origin");
+}
+
+exports.mbPlaces = onRequest({ cors: true, secrets: [MAPBOX_TOKEN] }, async (req, res) => {
+  setCors(res, "*");
+  if (req.method === "OPTIONS") return res.status(204).send("");
+  if (req.method !== "GET") return res.status(405).send("Method Not Allowed");
+
+  try {
+    const token = MAPBOX_TOKEN.value();
+    if (!token) return res.status(500).json({ ok: false, error: "Missing MAPBOX_TOKEN" });
+
+    const q = (req.query.q || "hospital").toString().slice(0, 100);
+    const center = parseLngLat(req.query.center) || [144.9631, -37.8136]; 
+    const limit = Math.min(Math.max(Number(req.query.limit) || 20, 1), 50);
+
+    const url = new URL(`https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(q)}.json`);
+    url.searchParams.set("proximity", `${center[0]},${center[1]}`);
+    url.searchParams.set("types", "poi");
+    url.searchParams.set("limit", String(limit));
+    url.searchParams.set("access_token", token);
+
+    const r = await fetch(url);
+    const json = await r.json();
+    return res.json(json); 
+  } catch (e) {
+    console.error("MB_PLACES_ERROR:", e);
+    return res.status(500).json({ ok: false, error: "Failed to fetch places" });
+  }
+});
+
+
+exports.mbRoute = onRequest({ cors: true, secrets: [MAPBOX_TOKEN] }, async (req, res) => {
+  setCors(res, "*");
+  if (req.method === "OPTIONS") return res.status(204).send("");
+  if (req.method !== "GET") return res.status(405).send("Method Not Allowed");
+
+  try {
+    const token = MAPBOX_TOKEN.value();
+    if (!token) return res.status(500).json({ ok: false, error: "Missing MAPBOX_TOKEN" });
+
+    const origin = parseLngLat(req.query.origin);
+    const dest = parseLngLat(req.query.dest);
+    if (!origin || !dest) return res.status(400).json({ ok: false, error: "Invalid origin/dest" });
+
+    const profile = ["mapbox/driving", "mapbox/walking", "mapbox/cycling"].includes(req.query.profile)
+      ? req.query.profile
+      : "mapbox/driving";
+
+    const url = new URL(`https://api.mapbox.com/directions/v5/${profile}/${origin[0]},${origin[1]};${dest[0]},${dest[1]}`);
+    url.searchParams.set("alternatives", "true");
+    url.searchParams.set("geometries", "geojson");
+    url.searchParams.set("overview", "full");
+    url.searchParams.set("steps", "true");
+    url.searchParams.set("access_token", token);
+
+    const r = await fetch(url);
+    const json = await r.json();
+    return res.json(json);
+  } catch (e) {
+    console.error("MB_ROUTE_ERROR:", e);
+    return res.status(500).json({ ok: false, error: "Failed to fetch route" });
+  }
+});
+
+
