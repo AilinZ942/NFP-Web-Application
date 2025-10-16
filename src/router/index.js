@@ -9,6 +9,7 @@ import SendEmailView from '@/components/views/SendEmailView.vue'
 import SupportView from '@/components/views/SupportView.vue'
 import DonorView from '@/components/views/DonorView.vue'
 import ActivityView from '@/components/views/ActivityView.vue'
+import MapView from '@/components/views/MapView.vue'
 import { auth } from '../firebase/init.js'
 
 
@@ -16,6 +17,7 @@ const routes = [
   { path: '/', redirect: '/healthResource' },
   { path: '/healthResource', name: 'healthResource', component: HealthResourceView },
   { path: '/community', name: 'community', component: CommunityView, meta: { requiresAuth: true } },
+  { path: '/map', name: 'map', component: MapView },
   {
     path: '/account',
     redirect: () => (auth.currentUser ? { name: 'account.profile' } : { name: 'account.login' }),
