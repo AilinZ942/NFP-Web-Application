@@ -112,9 +112,16 @@ exports.mbPlaces = onRequest({ cors: true, secrets: [MAPBOX_TOKEN] }, async (req
   try {
     const token = MAPBOX_TOKEN.value();
     if (!token) return res.status(500).json({ error: "Missing MAPBOX_TOKEN" });
+    const qRaw = String(req.query.q || "").toLowerCase().trim();
+    let queryText;
+    if (qRaw.includes("police")) {
+      queryText = "police station";
+    } else if (qRaw.includes("hospital")) {
+      queryText = "hospital";
+    } else {
+      queryText = qRaw || "hospital";
+  }
 
-    const qRaw = String(req.query.q || "hospital").toLowerCase();
-    const queryText = (qRaw === "police") ? "police station" : "hospital";
     let [lng, lat] = String(req.query.center || "144.9631,-37.8136").split(",").map(Number);
     if (!Number.isFinite(lng) || !Number.isFinite(lat)) { lng = 144.9631; lat = -37.8136; }
     if (Math.abs(lng) > 180 || Math.abs(lat) > 90) { [lng, lat] = [lat, lng]; }
@@ -277,4 +284,33 @@ exports.updateUserProfile = onRequest(async (req, res) => {
     return res.status(500).json({ error: "INTERNAL", message: e.message || String(e) });
   }
 });
+
+
+const db = admin.firestore();
+
+const toKey = (s) => String(s || "").trim().toLowerCase();
+
+exports.checkNameUnique = onRequest(async (req, res) => {
+  setCors(res);
+  if (req.method === "OPTIONS") return res.status(204).end();
+  if (req.method !== "POST") return res.status(405).json({ error: "METHOD_NOT_ALLOWED" });
+
+  try {
+    const raw = req.body?.username;
+    const name = toKey(raw);
+    if (name.length < 3 || name.length > 60) {
+      return res.json({ ok: true, unique: false, reason: "length" });
+    }
+    const snap = await db.collection("users")
+      .where("username", "==", name)
+      .limit(1)
+      .get();
+
+    return res.json({ ok: true, unique: snap.empty }); 
+  } catch (e) {
+    console.error(e);
+    return res.status(500).json({ ok: false, error: "INTERNAL", message: e.message || String(e) });
+  }
+});
+
 

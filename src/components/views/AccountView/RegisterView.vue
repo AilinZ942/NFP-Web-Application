@@ -154,6 +154,8 @@ import { createUserWithEmailAndPassword, updateProfile, signOut } from 'firebase
 import { doc, setDoc } from 'firebase/firestore'
 
 const router = useRouter()
+const CHECK_NAME_URL = 'https://checknameunique-chzb3x46ga-ts.a.run.app'
+
 
 const formData = ref({
   email: '',
@@ -257,13 +259,44 @@ const validateStatement = (blur) => {
   }
 }
 
-const submitForm = () => {
+async function checkUsernameUnique(usernameRaw) {
+  const ctrl = new AbortController()
+  const t = setTimeout(() => ctrl.abort(), 6000)
+  try {
+    const resp = await fetch(CHECK_NAME_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username: usernameRaw }),
+      signal: ctrl.signal,
+    })
+    clearTimeout(t)
+    const data = await resp.json().catch(() => ({}))
+    if (!resp.ok || !data?.ok) return { ok: false, unique: false }
+    return data 
+  } catch {
+    return { ok: false, unique: false }
+  }
+}
+
+
+const submitForm = async () => {
   validateName(true)
   validateEmail(true)
   validatePassword(true)
   validateConfirm(true)
   validateAge(true)
   validateStatement(true)
+  
+  const username = formData.value.username.trim()
+  const { ok, unique } = await checkUsernameUnique(username)
+  if (!ok) {
+    errors.value.username = 'Username check failed. Please try again.'
+    return
+  }
+  if (!unique) {
+    errors.value.username = 'This username is already taken.'
+    return
+  }
 
   if (
     errors.value.username ||
@@ -272,27 +305,30 @@ const submitForm = () => {
     errors.value.confirmPassword ||
     errors.value.age ||
     errors.value.readStatement
-  )
-    return
+  ) return
 
-  const { email, password, username, country, city, age, interestTopic } = formData.value
-
-  createUserWithEmailAndPassword(auth, email, password)
-    .then((cred) =>
-      updateProfile(cred.user, { displayName: username }).then(() =>
-        setDoc(doc(db, 'users', cred.user.uid), {
-          email,
-          username,
-          country,
-          city,
-          age,
-          interestTopic,
-        }),
-      ),
-    )
-    .then(() => signOut(auth))
-    .then(() => router.push('/account/login'))
-    .catch(() => alert('Registration failed.'))
+  const email = formData.value.email.trim()
+  const { password, country, city, age, interestTopic } = formData.value
+  try {
+    const cred = await createUserWithEmailAndPassword(auth, email, password)
+    await updateProfile(cred.user, { displayName: username })
+    await setDoc(doc(db, 'users', cred.user.uid), {
+      email,                   
+      username,
+      country,
+      city,
+      age,
+      interestTopic,
+    }, { merge: true })
+    await setDoc(doc(db, 'users', cred.user.uid), {
+      email, username, usernameLower: username.toLowerCase(),
+      country, city, age, interestTopic,
+    }, { merge: true })
+    await signOut(auth)
+    router.push('/account/login')
+    } catch (e) {
+      console.error(e)
+    }
 }
 </script>
 
