@@ -62,7 +62,8 @@
             <div class="col-4 fw-bold">Topic</div>
             <div class="col-8">{{ user.interestTopic || '-' }}</div>
           </div>
-          <div class="text-center mt-3">
+          <div class="d-flex justify-content-center gap-2 mt-3">
+            <router-link class="btn btn-outline-primary" :to="{ name: 'account.editProfile' }">Edit</router-link>
             <button class="btn btn-outline-secondary" @click="logout">Logout</button>
           </div>
         </div>

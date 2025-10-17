@@ -10,6 +10,7 @@ import SupportView from '@/components/views/SupportView.vue'
 import DonorView from '@/components/views/DonorView.vue'
 import ActivityView from '@/components/views/ActivityView.vue'
 import MapView from '@/components/views/MapView.vue'
+import EditProfileView from '@/components/views/AccountView/EditProfileView.vue'
 import { auth } from '../firebase/init.js'
 
 
@@ -40,6 +41,11 @@ const routes = [
     name: 'account.profile',
     component: ProfileView,
     meta: { requiresAuth: true },
+  },
+  {
+    path: '/account/EditProfile',
+    name: 'account.editProfile',
+    component: EditProfileView,
   },
   {
     path: '/send-email',

@@ -155,7 +155,8 @@ exports.mbPlaces = onRequest({ cors: true, secrets: [MAPBOX_TOKEN] }, async (req
           if (!r2.ok) return res.status(r2.status).send(text2);
           return res.type("application/json").send(text2);
         }
-      } catch {  }
+      } catch (e) { 
+        console.error(e); }
     }
 
     if (!r.ok) return res.status(r.status).send(text);
@@ -200,4 +201,80 @@ exports.mbRoute = onRequest({ cors: true, secrets: [MAPBOX_TOKEN] }, async (req,
   }
 });
 
+
+const admin = require("firebase-admin");
+admin.initializeApp();
+
+const AGE_ENUM = new Set([
+  "16-25", "26-35", "36-45", "46-55", "56-65", "65+", "notSay",
+]);
+
+const TOPIC_ENUM = new Set([
+  "Adolescent Health",
+  "Pregnancy & Postpartum",
+  "Mental Health",
+  "Nutrition & Physical Activity",
+  "Chronic Disease",
+  "Menopause",
+]);
+
+exports.updateUserProfile = onRequest(async (req, res) => {
+  setCors(res);
+  if (req.method === "OPTIONS") return res.status(204).end();
+  if (req.method !== "POST") return res.status(405).json({ error: "METHOD_NOT_ALLOWED" });
+
+  try {
+    const authHeader = req.headers.authorization || "";
+    const idToken = authHeader.startsWith("Bearer ") ? authHeader.slice(7) : null;
+    if (!idToken) return res.status(401).json({ error: "UNAUTHENTICATED" });
+
+    const decoded = await admin.auth().verifyIdToken(idToken);
+    const callerUid = decoded.uid;
+
+    const { username, country, city, age, interestTopic } = req.body || {};
+
+    const patch = {};
+
+    if (typeof username === "string") {
+      const v = username.trim();
+      if (v.length < 3) return res.status(400).json({ error: "INVALID_ARGUMENT", field: "username" });
+      patch.username = v.slice(0, 60);
+    }
+
+    if (typeof country === "string") {
+      patch.country = country.trim().slice(0, 60);
+    }
+
+    if (typeof city === "string") {
+      patch.city = city.trim().slice(0, 60);
+    }
+
+    if (typeof age === "string") {
+      const a = age.trim();
+      if (!AGE_ENUM.has(a)) return res.status(400).json({ error: "INVALID_ARGUMENT", field: "age" });
+      patch.age = a;
+      patch.ageBand = a;
+    }
+
+    if (typeof interestTopic === "string") {
+      const t = interestTopic.trim();
+      if (!TOPIC_ENUM.has(t)) return res.status(400).json({ error: "INVALID_ARGUMENT", field: "interestTopic" });
+      patch.interestTopic = t;
+    }
+
+    if (Object.keys(patch).length === 0) {
+      return res.status(400).json({ error: "INVALID_ARGUMENT", message: "no valid fields" });
+    }
+
+    patch.updatedAt = admin.firestore.FieldValue.serverTimestamp();
+    const userRef = admin.firestore().doc(`users/${callerUid}`);
+    await userRef.set(patch, { merge: true });
+
+    const snap = await userRef.get();
+    return res.json({ ok: true, data: snap.data() });
+  } catch (e) {
+    console.error(e);
+    return res.status(500).json({ error: "INTERNAL", message: e.message || String(e) });
+  }
+});
 
