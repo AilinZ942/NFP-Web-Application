@@ -288,8 +288,6 @@ exports.updateUserProfile = onRequest(async (req, res) => {
 
 const db = admin.firestore();
 
-const toKey = (s) => String(s || "").trim().toLowerCase();
-
 exports.checkNameUnique = onRequest(async (req, res) => {
   setCors(res);
   if (req.method === "OPTIONS") return res.status(204).end();
@@ -297,12 +295,11 @@ exports.checkNameUnique = onRequest(async (req, res) => {
 
   try {
     const raw = req.body?.username;
-    const name = toKey(raw);
-    if (name.length < 3 || name.length > 60) {
+    if (raw.length < 3 || raw.length > 60) {
       return res.json({ ok: true, unique: false, reason: "length" });
     }
     const snap = await db.collection("users")
-      .where("username", "==", name)
+      .where("username", "==", raw)
       .limit(1)
       .get();
 

@@ -1,6 +1,14 @@
 <template>
   <section class="container my-4 py-5" v-if="user">
     <div v-if="isAdmin" class="mt-4">
+      <div class="text-lg font-medium">Total Users: {{ totalUsers }}</div>
+      <div class="text-lg font-medium">User Age Group:</div>
+      <ul class="d-flex align-items-center gap-2 flex-wrap mb-0" aria-label="User types by age group">
+        <li v-for="t in ageList" :key="t.age" class="badge text-bg-light border">
+          {{ t.age }}: {{ t.count }} ({{ t.pct }}%)
+        </li>
+      </ul>
+
       <h2 class="h5 mb-3">All Users</h2>
       <div class="table-responsive">
         <table class="table table-sm table-hover align-middle">
@@ -117,6 +125,24 @@ onMounted(() => {
 })
 
 const isAdmin = computed(() => currentEmail.value === ADMIN_EMAIL)
+
+const totalUsers = computed(() => allUsers.value.length)
+
+
+const AGE_KEY = 'age'
+const ageList = computed(() => {
+  const total = totalUsers.value
+  const counts = {}
+  for (const r of allUsers.value) {
+    const a = (r?.[AGE_KEY]).toString()
+    counts[a] = (counts[a] || 0) + 1
+  }
+  return Object.entries(counts).map(([age, count]) => ({                                  
+    age,                          
+    count,
+    pct: Math.round((count / total) * 100)   
+  }))
+  })
 
 const logout = () => {
   signOut(auth).then(() => router.replace('/account/login'))
