@@ -11,6 +11,7 @@ import DonorView from '@/components/views/DonorView.vue'
 import ActivityView from '@/components/views/ActivityView.vue'
 import MapView from '@/components/views/MapView.vue'
 import EditProfileView from '@/components/views/AccountView/EditProfileView.vue'
+import BulkEmailAllView  from'@/components/views/BulkEmailAllView.vue'
 import { auth } from '../firebase/init.js'
 
 
@@ -51,6 +52,12 @@ const routes = [
     path: '/send-email',
     name: 'sendEmail',
     component: SendEmailView,
+    meta: { requiresAuth: true },
+  },
+  {
+    path: '/bulk-email-all',
+    name: 'bulkEmailAll',
+    component: BulkEmailAllView,
     meta: { requiresAuth: true },
   },
   { path: '/support/activities', name: 'support.activities', component: ActivityView },

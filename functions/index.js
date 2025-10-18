@@ -39,6 +39,13 @@ const sgMail = require("@sendgrid/mail")
 
 setGlobalOptions({ region: "australia-southeast1", maxInstances: 10 })
 
+function setCors(res, origin = "*") {
+  res.set("Access-Control-Allow-Origin", origin);
+  res.set("Access-Control-Allow-Headers", "content-type,authorization");
+  res.set("Access-Control-Allow-Methods", "GET,OPTIONS");
+  res.set("Vary", "Origin");
+}
+
 const SENDGRID_API_KEY = defineSecret("SENDGRID_API_KEY")
 const MAIL_SENDER  = defineSecret("MAIL_SENDER")
 
@@ -47,10 +54,7 @@ const emailRe = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 const ALLOWED = new Set(["application/pdf","text/plain","text/markdown","application/json","text/x-log"])
 
 exports.sendMail = onRequest({ cors: true, secrets: [SENDGRID_API_KEY, MAIL_SENDER] }, async (req, res) => {
-  res.set("Access-Control-Allow-Origin", "*")
-  res.set("Access-Control-Allow-Headers", "content-type")
-  res.set("Access-Control-Allow-Methods", "POST, OPTIONS")
-  res.set("Vary", "Origin")
+  setCors(res)
   if (req.method === "OPTIONS") {
     return res.status(204).send("")
   }
@@ -100,15 +104,8 @@ function parseLngLat(val) {
   return [lng, lat];
 }
 
-function setCors(res, origin = "*") {
-  res.set("Access-Control-Allow-Origin", origin);
-  res.set("Access-Control-Allow-Headers", "content-type,authorization");
-  res.set("Access-Control-Allow-Methods", "GET,OPTIONS");
-  res.set("Vary", "Origin");
-}
-
 exports.mbPlaces = onRequest({ cors: true, secrets: [MAPBOX_TOKEN] }, async (req, res) => {
-
+  setCors(res)
   try {
     const token = MAPBOX_TOKEN.value();
     if (!token) return res.status(500).json({ error: "Missing MAPBOX_TOKEN" });

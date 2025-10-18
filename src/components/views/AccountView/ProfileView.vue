@@ -20,7 +20,6 @@
         </li>
       </ul>
 
-
       <h2 class="h5 mb-3">All Users</h2>
       <DataTable
         :rows="rowsForTable"
@@ -28,6 +27,10 @@
         :pageSize="10"
         :globalSearchPlaceholder="'Search users'"
       />
+
+      <button class="btn btn-primary mb-2" @click="router.push({ name: 'bulkEmailAll' })">
+        Send email to all users
+      </button>
 
       <div v-if="selectedAge" class="my-3">
         <div class="d-flex align-items-center gap-2 mb-2">
