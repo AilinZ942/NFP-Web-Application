@@ -97,7 +97,6 @@ onMounted(async () => {
   const coords = (e && e.coords) ? e.coords : null;
   if (!coords || !Number.isFinite(coords.longitude) || !Number.isFinite(coords.latitude)) {
     console.warn('Geolocate event without coords:', e);
-    status.value = 'Location unavailable, using map center';
     return; 
   }
   myLngLat.value = [coords.longitude, coords.latitude];

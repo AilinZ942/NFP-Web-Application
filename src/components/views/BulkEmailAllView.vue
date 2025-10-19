@@ -88,10 +88,7 @@ async function start() {
         body: JSON.stringify({
           to: slice,                  
           subject: subject.value,
-          text: body.value,
-          fileBase64, 
-          fileName, 
-          mimeType
+          text: body.value
         })
       })
 
